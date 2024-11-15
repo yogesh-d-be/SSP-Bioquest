@@ -2,18 +2,25 @@ const jwt = require('jsonwebtoken');
 const Admin = require('../models/admin.login.model');
 const config = require('../config/config');
 
-const secretKey = config.token.secretKey;
 
-const generateToken = async (data) =>{
+
+const generateAccessToken = async (data) =>{
+    const {_id, role} = data;
+    let token = jwt.sign({id:_id, role:role},config.token.accessSecretKey,{expiresIn:config.token.accessTokenExpiry});
+    return token;
+}
+
+const generateRefreshToken = async (data) =>{
     const {_id} = data;
-    let token = jwt.sign({id:_id},secretKey,{expiresIn:'7d'});
+    let token = jwt.sign({id:_id},config.token.refreshSecretKey,{expiresIn:config.token.refreshTokenExpiry});
     return token;
 }
 
 
-const verifyToken = async(req, res, next) =>{
-    try {
+const verifyAccessToken= (role) => async(req, res, next) =>{
+ 
         const authHeader = req.headers['authorization'];
+     
 
         if(!authHeader){
             return res.status(401).json({message: "Access denied, no token provided"});
@@ -25,28 +32,28 @@ const verifyToken = async(req, res, next) =>{
         }
 
         const token = tokenParts[1];
-        let decoded;
+      
         try {
-            decoded = jwt.verify(token, secretKey)
-        } catch (error) {
-            if(error.name === "TokenExpiredError"){
-                return res.status(401).json({message:"Token expired"})
-            }else{
-                return res.status(401).json({message:"Invalid token"});
+            const decoded = jwt.verify(token, config.token.accessSecretKey);
+         
+            if (!decoded.role || decoded.role !== role) {
+                return res.status(403).json({ message: "Access denied, insufficient permissions" });
             }
-        }
-
-
-        const admin = await Admin.findById(decoded.adminId || decoded.id);
-        if (!admin) {  
-            return res.status(401).json({ message: "Access denied, invalid token" });
+            const admin = await Admin.findById(decoded.id);
+            if (!admin) return res.status(401).json({ message: "Access denied, invalid token" });
+        
+            req.admin = decoded;
+            console.log("de",decoded);
+            next();
+          } catch (error) {
+            return res.status(401).json({ message: error.name === "TokenExpiredError" ? "Token expired" : "Invalid token" });
           }
+};
 
-          req.admin = admin;
-          next();
 
-    } catch (error) {
-    res.status(500).json({ message: "Failed to authenticate admin" });
-    
-    }
+
+module.exports ={
+    generateAccessToken,
+    generateRefreshToken,
+    verifyAccessToken
 }

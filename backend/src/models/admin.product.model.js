@@ -8,6 +8,7 @@ const stringRequired = {
 const productSchema = new mongoose.Schema({
     mainCategory:stringRequired,
     subCategory:stringRequired,
+    productCode:stringRequired,
     productName:stringRequired,
     productImage:stringRequired,
     productDescription:stringRequired,
