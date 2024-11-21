@@ -10,7 +10,8 @@ const AdminLoginSchema = new mongoose.Schema({
     password:stringRequired,
     role: { type: String, default: 'admin' }
 },{
-    collection:"AdminLogin"
+    collection:"AdminLogin",
+    timestamps:true
 })
 
 

@@ -15,6 +15,11 @@ const envVarSchema = Joi.object().keys({
     ADMIN_EMAIL: Joi.string().description("Admin Email"),
     ADMIN_PASSWORD: Joi.string().description("Admin Password"),
 
+    CLIENT_ID: Joi.string().description("google client id"),
+    CLIENT_SECRET: Joi.string().description("google client secret"),
+    REDIRECT_URI: Joi.string().description("google redirect uri"),
+
+
     SUPABASE_URL: Joi.string().description("supabase url"),
     SUPABASE_ANON_KEY: Joi.string().description("supabase key"),
     SUPABASE_SERVICE_ROLE_KEY: Joi.string().description("supabase service key"),
@@ -46,6 +51,11 @@ module.exports = {
     adminCredentials:{
         adminEmail: envVars.ADMIN_EMAIL,
         adminPassword: envVars.ADMIN_PASSWORD
+    },
+    googleDrive:{
+        clientId: envVars.CLIENT_ID,
+        clientSecret: envVars.CLIENT_SECRET,
+        redirectUri: envVars.REDIRECT_URI
     },
     supabase:{
         supabaseUrl: envVars.SUPABASE_URL,

@@ -1,21 +1,43 @@
 const mongoose = require('mongoose');
 
-const stringRequired = {
-    type:String,
-    required:true
-}
+
 
 const productSchema = new mongoose.Schema({
-    mainCategory:stringRequired,
-    subCategory:stringRequired,
-    productCode:stringRequired,
-    productName:stringRequired,
-    productImage:stringRequired,
-    productDescription:stringRequired,
-    productFeature:stringRequired,
-    specificationsTable:stringRequired
+    mainCategory:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'MainCategory',
+        required:true,
+    },
+    // subCategory:stringRequired,
+    productCode:{
+        type:String,
+        required:[true,"Product code is required"],
+        unique:true,
+        index: true,
+    },
+    productName:{
+    type:String,
+    required:[true, "Product name is required"],
+    trim:true
+},
+    productImage:{
+        type: Array,
+        required: [true,"Product image is required"],
+    },
+    // productDescription:stringRequired,
+    productFeature:{
+        type: Array,
+        required: [true,"Product feature is required"],
+        trim:true
+    },
+    brochure:{
+        type:String,
+        required:[true, "Brochure is required"]
+    }
+    // specificationsTable:stringRequired
 },{
-    collection:"ProductsList"
+    collection:"ProductsList",
+    timestamps:true
 });
 
 const products = mongoose.model("ProductsList",productSchema);

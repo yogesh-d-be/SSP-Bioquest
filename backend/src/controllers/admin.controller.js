@@ -19,14 +19,33 @@ const adminRefreshAccessTokenController = catchAsync(async (req, res) => {
 
 
 const createProductController = catchAsync(async (req, res) => {
+    console.time("createProductController");
     const createProduct = await adminService.createProductService(req);
     res.status(201).json({success:true, message:"Product create successfully", data:createProduct});
-})
+    console.timeEnd("createProductController");
+});
 
+const listProductController = catchAsync(async (req, res) => {
+    const listProduct = await adminService.listProductService(req);
+    res.status(200).json({success:true, message:"Product listed successfully", data:listProduct});
+});
+
+const updateProductController = catchAsync(async (req, res) => {
+    const listProduct = await adminService.updateProductService(req);
+    res.status(200).json({success:true, message:"Product updated successfully", data:listProduct});
+});
+
+const removeProductController = catchAsync(async (req, res) => {
+    const listProduct = await adminService.removeProductService(req);
+    res.status(200).json({success:true, message:"Product deleted successfully", data:listProduct});
+});
 
 
 module.exports = {
     adminLoginController,
     adminRefreshAccessTokenController,
-    createProductController
+    createProductController,
+    listProductController,
+    updateProductController,
+    removeProductController
 }

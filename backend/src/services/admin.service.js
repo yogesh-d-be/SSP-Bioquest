@@ -7,6 +7,9 @@ const authentication = require('../middleware/auth');
 const ApiError = require('../utils/apiError');
 const sequence = require('../utils/sequence');
 const supabase = require('../utils/uploadToSupabase');
+const { createClient } = require('@supabase/supabase-js');
+const { removeFileFromStroage } = require('../middleware/fileUpload');
+
 
 const login = async (req) =>{
     const {email, password} = req. body;
@@ -110,57 +113,222 @@ const refreshAccessToken = async (req) => {
 //     return await createProducts.save();
 // };
 
+// const createProductService = async (req) => {
+
+//   // const { productFeature, productDescription, productName, subCategory, mainCategory } = req.body;
+//   const { productImage, brochure } = req.files || {};
+//     if (!productImage?.[0] || !brochure?.[0]) {
+//         throw new ApiError(400, "Both product image and brochure are required.");
+//     }
+      
+
+
+//   const productCode = await sequence.generateProductCode();
+//   const bucketName = 'sspbioquest';
+//   const imagePath = `SSPBioQuest/Product/${productCode}.${productImage[0].originalname.split('.').pop()}`;
+//   const brochurePath = `SSPBioQuest/Brochure/${productCode}.${brochure[0].originalname.split('.').pop()}`;
+//   console.time("supabaseUpload");
+//   console.time('bufferTime');
+// const imageBuffer = productImage[0].buffer;
+// console.timeEnd('bufferTime');
+// console.time('bufferTime br');
+// const pdfBuffer = brochure[0].buffer;
+// console.timeEnd('bufferTime br');
+//       const [newProductImage, newBrochurePDF] = await Promise.all([
+//           supabase.uploadFile(
+//               bucketName,
+//               imagePath,
+//              imageBuffer,
+
+//           ),
+//           supabase.uploadFile(
+//               bucketName,
+//               brochurePath,
+//              pdfBuffer,
+              
+//           ),
+//       ]);
+//       console.timeEnd("supabaseUpload");
+//       if(!newProductImage || !newBrochurePDF ){
+//         throw new ApiError(500, "Failed to upload files.");
+//       }
+    
+//       const productData = {
+//           ...req.body,
+//           productCode,
+//           productImage: newProductImage,
+//           brochure: newBrochurePDF,
+//       };
+    
+   
+//       const savedProduct = await new Product(productData).save();
+//       console.timeEnd("createProductService"); // End the product creation timer
+//       return savedProduct;
+     
+// };
+
 const createProductService = async (req) => {
-  // const { productFeature, productDescription, productName, subCategory, mainCategory } = req.body;
 
 
-  const productImage = req.files?.productImage?.[0];
-  const specificationsTable = req.files?.specificationsTable?.[0];
-  if (!productImage || !specificationsTable) {
-      throw new ApiError(400,"Both product image and specifications table are required.");
+    const { productImage, brochure } = req.files || {};
+      if (!productImage?.length || !brochure?.[0]) {
+          throw new ApiError(400, "Both product image and brochure are required.");
+      }
+        
+
+    const productCode = req.productCode;
+    // console.log("product",productImage, "br",brochure)
+    const productImagePath = productImage.map((file)=>file.filename);
+    const brochurePath = brochure[0]?.filename || null;
+
+    if (!productImagePath|| !brochurePath) {
+        throw new ApiError(404, "File name not found");
+    }
+        const productData = {
+            ...req.body,
+            productCode,
+            productImage: productImagePath,
+            brochure: brochurePath,
+        };
+      
+     
+       let savedProduct;
+       try{
+        savedProduct = await new Product(productData).save();
+       }
+       catch(error){
+        if(productImagePath.length){
+            productImagePath.forEach((filePath)=>removeFileFromStroage(filePath));
+        }
+        if(brochurePath){
+            removeFileFromStroage(brochure)
+        }
+         throw new ApiError(500, "Error saving product and cleaning up files");
+       }
+       
+        return savedProduct;
+       
+  };
+
+  const listProductService = async (req) => {
+    const {page = 1, limit = 10} = req.query;
+    const skip = (page - 1)*limit;
+    const productList = await Product.find({}).skip(skip).limit(limit,10).lean();
+    if(!productList){
+        throw new ApiError(404,"Product not found")
+    }
+
+    return productList;
+  };
+
+  const updateProductService = async (req) => {
+    console.log("r",req.body)
+    const {productId} = req.params;
+    const { productImage, brochure } = req.files || {};
+    const updateData = {...req.body};
+
+    const existingProduct = await Product.findById(productId);
+    
+    const productCode = existingProduct.productCode;
+    console.log("pr",productCode)
+    if (!existingProduct) {
+        throw new ApiError(404, "Product not found.");
+    }
+
+    if(productImage?.length){
+        const updateProductImage = productImage.map((file)=> file.filename);
+        if(existingProduct.productImage?.length){
+            existingProduct.productImage.forEach((imagePath)=>{
+                removeFileFromStroage(imagePath)
+            })
+        }
+        updateData.productImage = updateProductImage;
+    }
+    if(brochure?.[0]){
+        const updateBrochure = brochure[0].filename;
+        if(existingProduct.brochure?.[0]){
+            removeFileFromStroage(existingProduct.brochure)
+        }
+        updateData.brochure = updateBrochure;
+    }
+
+    updateData.productCode = productCode;
+    const updateProduct = await Product.findByIdAndUpdate(productId, updateData, {new:true})
+    return updateProduct;
   }
 
-  const productCode = await sequence.generateProductCode();
+  const removeProductService = async (req) => {
+    const { productId } = req.params;
 
-  const productExtension = productImage.originalname.split('.').pop();
-  const specExtension = specificationsTable.originalname.split('.').pop();
-
-      // Upload images to Supabase and get URLs
-      const [newProductImage, newSpecificationsTable] = await Promise.all([
-          supabase.uploadImage(
-              'sspbioquest',
-              `SSPBioQuest/Product/${productCode}.${productExtension}`,
-              productImage.buffer
-          ),
-          supabase.uploadImage(
-              'sspbioquest',
-              `SSPBioQuest/Specifications/${productCode}.${specExtension}`,
-              specificationsTable.buffer
-          ),
-      ]);
-
-      if(!newProductImage || !newSpecificationsTable){
-        throw new ApiError(400,"Images not created. please try again")
-      }
+    const existingProduct = await Product.findById(productId);
     
-      const productData = {
-          ...req.body,
-          productCode,
-          productImage: newProductImage,
-          specificationsTable: newSpecificationsTable,
-      };
+    if (!existingProduct) {
+        throw new ApiError(404, 'Product not found, could not delete.');
+    }
 
-    
-      const createdProduct = new Product(productData);
-      return await createdProduct.save();
+    const productImagePath = existingProduct.productImage?.map((file) => file) || [];
+    const brochurePath = existingProduct.brochure || null;
+
+    if (productImagePath.length > 0) {
+        productImagePath.forEach((file) => removeFileFromStroage(file));
+    }
+
+    if (brochurePath) {
+        removeFileFromStroage(brochurePath);
+    }
 
 
+    const removedProduct = await Product.findByIdAndDelete(productId);
+
+    if (!removedProduct) {
+        throw new ApiError(404, 'Product not found, could not delete.');
+    }
+
+    return removedProduct;
 };
 
+
+// const listProductService = async (req) => {
+//     const listProduct = await Product.find({});
+//     // console.log('lis',listProduct)
+//     if(!listProduct || listProduct.length === 0){
+//         throw new ApiError(404,"Product not found!")
+//     }
+//     const supabase = createClient(config.supabase.supabaseUrl, config.supabase.supabaseServiceKey);
+
+//     const { data, error } = supabase
+//     .storage
+//     .from('sspbioquest')
+//     .getPublicUrl('Brochure/SSPBQ092.pdf');
+// if (error) {
+//     console.error('Error generating public URL:', error.message);
+// } else {
+//     console.log('Public URL:', data.publicUrl);
+// }
+
+//     const allProducts = 
+//         listProduct.map((product)=>{
+//             const productImageURL = `${config.supabase.supabaseUrl}/storage/v1/object/public/sspbioquest/${product.productImage}`;
+//             const brochureURL = `${config.supabase.supabaseUrl}/storage/v1/object/public/sspbioquest/${product.brochure}`;
+//             // console.log(productImageURL, product.productImage)
+//             return{
+//                 ...product.toObject(),
+//                 productImageURL,
+//                 brochureURL
+//             }
+//         })
+//     // const allProducts = await supabase.generateFilePathURL();
+//     console.log("all",allProducts)
+//     return allProducts;
+ 
+// }
   
 
 module.exports = {
     login,
     refreshAccessToken,
-    createProductService
+    createProductService,
+    listProductService,
+    updateProductService,
+    removeProductService
 }
