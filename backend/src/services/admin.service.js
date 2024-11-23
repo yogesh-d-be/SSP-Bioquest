@@ -2,14 +2,16 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const AdminLogin = require('../models/admin.login.model');
 const Product = require('../models/admin.product.model');
+const Category = require('../models/admin.maincategory.model');
 const config = require('../config/config');
 const authentication = require('../middleware/auth');
 const ApiError = require('../utils/apiError');
-const sequence = require('../utils/sequence');
 const supabase = require('../utils/uploadToSupabase');
 const { createClient } = require('@supabase/supabase-js');
 const { removeFileFromStroage } = require('../middleware/fileUpload');
-
+const generateCode = require('../utils/sequence');
+const PartnerCompany =  require('../models/admin.partnercompany.model');
+const UserContactUs = require('../models/user.contactus.model');
 
 const login = async (req) =>{
     const {email, password} = req. body;
@@ -56,6 +58,87 @@ const refreshAccessToken = async (req) => {
     const newAccessToken  = await authentication.generateAccessToken({_id:decoded.id});
 
     return {accessToken:newAccessToken};
+}
+
+const createCategoryService = async (req) => {
+    const {mainCategoryImage} = req.file || {};
+
+    console.log("main",mainCategoryImage, req.body)
+
+    if(!req.file){
+        throw new ApiError(400,"Category image is required");
+    }
+    const categoryImage = req.file.filename || null
+    let saveCategory;
+    try {
+
+    const categoryCode = await generateCode('categoryCode','SSPCA')
+    let updateData = {
+        ...req.body,
+        categoryCode,
+        mainCategoryImage:categoryImage
+    }
+    
+   
+        saveCategory = await new Category(updateData).save()
+    } catch (error) {
+        if(categoryImage){
+            await removeFileFromStroage(categoryImage,'categoryImages');
+        }
+        throw new ApiError(500,'Error while saving category');
+    }
+
+    return saveCategory;
+}
+
+const listCategoryService = async (req) => {
+    let {page = 1, limit = 10} = req.query;
+    page = parseInt(page, 10) || 1;
+    limit = parseInt(limit, 10) || 10;
+
+    const skip = (page-1)*limit;
+    const categoryList = await Category.find({}).skip(skip).limit(limit).lean();
+    if(!categoryList){
+        throw new ApiError(404,"Category not found")
+    }
+
+    return categoryList;
+};
+
+
+const updateCategoryService = async (req) => {
+    const {categoryId} = req.params;
+    // const {mainCategoryImage} = req.file || {};
+    const updateData = {...req.body};
+
+    const existingCategory = await Category.findById(categoryId);
+    if(!existingCategory){
+        throw new ApiError(404,'Category not found');
+    }
+
+    if(req.file){
+        const categoryImage = req.file.filename
+       await  removeFileFromStroage(existingCategory.mainCategoryImage,'categoryImages');
+       updateData.mainCategoryImage = categoryImage;
+    }
+
+    const updateCategory = await Category.findByIdAndUpdate(categoryId, updateData, {new:true});
+
+    return updateCategory;
+
+};
+
+const removeCategoryService = async (req) => {
+    const {categoryId} = req.params;
+    
+    const existingCategory = await Category.findById(categoryId);
+    if(!existingCategory){
+        throw new ApiError(404,"Category not found");
+    }
+    await removeFileFromStroage(existingCategory.mainCategoryImage,'categoryImages');
+    const removeCategory = await Category.findByIdAndDelete(categoryId);
+    return removeCategory;
+
 }
 
 // const createProductService = async (req) => {
@@ -180,7 +263,8 @@ const createProductService = async (req) => {
     // console.log("product",productImage, "br",brochure)
     const productImagePath = productImage.map((file)=>file.filename);
     const brochurePath = brochure[0]?.filename || null;
-
+    let savedProduct;
+    try{
     if (!productImagePath|| !brochurePath) {
         throw new ApiError(404, "File name not found");
     }
@@ -192,16 +276,15 @@ const createProductService = async (req) => {
         };
       
      
-       let savedProduct;
-       try{
+     
         savedProduct = await new Product(productData).save();
        }
        catch(error){
         if(productImagePath.length){
-            productImagePath.forEach((filePath)=>removeFileFromStroage(filePath));
+            productImagePath.forEach((filePath)=>removeFileFromStroage(filePath,'categoryFiles'));
         }
         if(brochurePath){
-            removeFileFromStroage(brochure)
+            removeFileFromStroage(brochure,'categoryFiles')
         }
          throw new ApiError(500, "Error saving product and cleaning up files");
        }
@@ -211,9 +294,11 @@ const createProductService = async (req) => {
   };
 
   const listProductService = async (req) => {
-    const {page = 1, limit = 10} = req.query;
+    let {page = 1, limit = 10} = req.query;
+    page = parseInt(page, 10);
+    limit = parseInt(limit, 10);
     const skip = (page - 1)*limit;
-    const productList = await Product.find({}).skip(skip).limit(limit,10).lean();
+    const productList = await Product.find({}).skip(skip).limit(limit).lean();
     if(!productList){
         throw new ApiError(404,"Product not found")
     }
@@ -239,7 +324,7 @@ const createProductService = async (req) => {
         const updateProductImage = productImage.map((file)=> file.filename);
         if(existingProduct.productImage?.length){
             existingProduct.productImage.forEach((imagePath)=>{
-                removeFileFromStroage(imagePath)
+                removeFileFromStroage(imagePath,'categoryFiles')
             })
         }
         updateData.productImage = updateProductImage;
@@ -247,7 +332,7 @@ const createProductService = async (req) => {
     if(brochure?.[0]){
         const updateBrochure = brochure[0].filename;
         if(existingProduct.brochure?.[0]){
-            removeFileFromStroage(existingProduct.brochure)
+            removeFileFromStroage(existingProduct.brochure,'categoryFiles')
         }
         updateData.brochure = updateBrochure;
     }
@@ -270,11 +355,11 @@ const createProductService = async (req) => {
     const brochurePath = existingProduct.brochure || null;
 
     if (productImagePath.length > 0) {
-        productImagePath.forEach((file) => removeFileFromStroage(file));
+        productImagePath.forEach((file) => removeFileFromStroage(file,'categoryFiles'));
     }
 
     if (brochurePath) {
-        removeFileFromStroage(brochurePath);
+        removeFileFromStroage(brochurePath,'categoryFiles');
     }
 
 
@@ -322,13 +407,93 @@ const createProductService = async (req) => {
 //     return allProducts;
  
 // }
+
+const createPartnerCompanyService = async (req) =>{
+  const {companyImage} = req.files || {}
+
+  if(!companyImage.length){
+    throw new ApiError(400, 'At least one company image is required');
+  }
+
+  const companyImageFile = companyImage.map((file) => file.filename);
+
+  let savedPartnerCompany;
+  let message = '';
+  let statusCode;
+  try {
   
+    let existingPartnerCompany = await PartnerCompany.findOne();
+
+    if(existingPartnerCompany){
+
+        const imagesToDelete = existingPartnerCompany.companyImage.filter(
+            (image) => !companyImageFile.includes(image)
+        )
+
+        for (const filePath of imagesToDelete){
+            await removeFileFromStroage(filePath, 'partnerCompany')
+        }
+
+        existingPartnerCompany.companyImage = companyImageFile;
+        savedPartnerCompany = await existingPartnerCompany.save();
+        statusCode = 200;
+          message = "company image updated successfully"
+    }else{
+        const companyData = { companyImage: companyImageFile };
+            savedPartnerCompany = await new PartnerCompany(companyData).save();
+            statusCode = 201;
+            message = 'Company image posted successfully';
+    }
+
+  } catch (error) {
+    if(companyImageFile.length){
+       for(const filePath of companyImageFile){
+        await removeFileFromStroage(filePath,'partnerCompany')
+       }
+    }
+    throw new ApiError(500, "Failed to save company images, try again!")
+  }
+
+  return {savedPartnerCompany, message, statusCode}
+};
+
+
+const listPartnerCompanyService = async (req) => {
+    const listPartnerCompany = await PartnerCompany.find({});
+    if(!listPartnerCompany.length){
+        throw new ApiError(404, "Company images not found");
+    }
+
+    return listPartnerCompany;
+}
+
+
+const listContactUsService = async (req) => {
+    const listContactUs = await UserContactUs.find({});
+    if(!listContactUs.length){
+        throw new ApiError(404, "User contact us not found");
+    }
+    
+    return listContactUs;
+}
+
 
 module.exports = {
     login,
     refreshAccessToken,
+
+    createCategoryService,
+    listCategoryService,
+    updateCategoryService,
+    removeCategoryService,
+
     createProductService,
     listProductService,
     updateProductService,
-    removeProductService
+    removeProductService,
+
+    createPartnerCompanyService,
+    listPartnerCompanyService,
+
+    listContactUsService
 }

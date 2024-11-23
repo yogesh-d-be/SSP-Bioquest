@@ -1,14 +1,16 @@
 const Counter = require('../models/counter.model');
 
-const generateProductCode = async () =>{
+
+const generateCode = async (name, suffix, length = 3) =>{
     const updatedCounter = await Counter.findOneAndUpdate(
-        {name:'productCode'},
+       {name:name},
         {$inc:{count:1}},
         {new:true, upsert:true}
     );
 
     const nextCount = updatedCounter.count;
-    return `SSPBQ${String(nextCount).padStart(3,'0')}`;
+    return `${suffix}${String(nextCount).padStart(length,'0')}`;
 };
 
-module.exports ={ generateProductCode};
+
+module.exports = generateCode;

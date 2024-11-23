@@ -20,7 +20,7 @@ app.use(router);
 const server = http.createServer(app);
 
 app.use((req, res, next)=>{
-    next(new ApiError(404,"Not found"))
+    next(new ApiError(404,"Not found API"))
 });
 
 app.use((err, req, res, next) =>{

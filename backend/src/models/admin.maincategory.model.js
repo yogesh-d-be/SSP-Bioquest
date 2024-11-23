@@ -21,7 +21,7 @@ const categorySchema = new mongoose.Schema({
         trim:true
     }
 },{
-    collation:"MainCategory",
+    collection:"MainCategory",
     timestamps:true
 
 })
