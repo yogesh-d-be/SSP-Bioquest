@@ -7,7 +7,6 @@ const config = require('../config/config');
 const generateAccessToken = async (data) =>{
     const {_id, role} = data;
     let token = jwt.sign({id:_id, role:role},config.token.accessSecretKey,{expiresIn:config.token.accessTokenExpiry});
-    console.log(token)
     return token;
 }
 
@@ -19,7 +18,7 @@ const generateRefreshToken = async (data) =>{
 
 
 const verifyAccessToken= (role) => async(req, res, next) =>{
-    console.time("verifyAccessToken");
+    // console.time("verifyAccessToken");
         const authHeader = req.headers['authorization'];
      
     
@@ -38,10 +37,10 @@ const verifyAccessToken= (role) => async(req, res, next) =>{
             if (!admin) return res.status(401).json({ message: "Access denied, invalid token" });
         
             req.admin = decoded;
-            console.timeEnd("verifyAccessToken");
+            // console.timeEnd("verifyAccessToken");
             next();
           } catch (error) {
-            console.log("error", error)
+            // console.log("error", error)
             return res.status(401).json({ message: error.name === "TokenExpiredError" ? "Token expired" : "Invalid token" });
           }
 };

@@ -24,6 +24,12 @@ const envVarSchema = Joi.object().keys({
     SUPABASE_ANON_KEY: Joi.string().description("supabase key"),
     SUPABASE_SERVICE_ROLE_KEY: Joi.string().description("supabase service key"),
 
+    SMTP_HOST: Joi.string().description("Email host"),
+    SMTP_PORT: Joi.number().description("Smtp port"),
+    SMTP_EMAIL_FROM: Joi.string().description("admin email"),
+    SMTP_EMAIL_PASS: Joi.string().description("email pass key"),
+    SMTP_TOEMAIL: Joi.string().description("To email"),
+
 }).unknown();
 
 
@@ -61,5 +67,17 @@ module.exports = {
         supabaseUrl: envVars.SUPABASE_URL,
         supabaseKey: envVars.SUPABASE_ANON_KEY,
         supabaseServiceKey: envVars.SUPABASE_SERVICE_ROLE_KEY
+    },
+    email:{
+        smtp:{
+            host: envVars.SMTP_HOST,
+            port: envVars.SMTP_PORT,
+            auth:{
+                user: envVars.SMTP_EMAIL_FROM,
+                pass: envVars.SMTP_EMAIL_PASS
+            }
+        },
+        from: envVars.SMTP_EMAIL_FROM,
+        toEmail: envVars.SMTP_TOEMAIL
     }
 }

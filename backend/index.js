@@ -11,7 +11,10 @@ const app =express();
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 app.use(bodyparser.urlencoded({extended:false}))
-app.use(cors('*'));
+app.use(cors({
+    origin: "http://localhost:5173", // frontend URL. it must because we stored refresh token in cookies. cors policy
+    credentials: true, // Enable cookies if required
+}));
 
 connect();
 
