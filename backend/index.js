@@ -1,4 +1,5 @@
 const express= require('express');
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const http = require('http');
 const bodyparser = require('body-parser');
@@ -8,9 +9,14 @@ const router = require('./src/routes');
 const ApiError = require('./src/utils/apiError');
 
 const app =express();
+// Add cookie-parser middleware
+app.use(cookieParser());
+
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 app.use(bodyparser.urlencoded({extended:false}))
+
+//cookie
 app.use(cors({
     origin: "http://localhost:5173", // frontend URL. it must because we stored refresh token in cookies. cors policy
     credentials: true, // Enable cookies if required

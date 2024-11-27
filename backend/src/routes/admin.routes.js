@@ -11,6 +11,8 @@ const getProductAndSetCode = require('../middleware/productCode');
 adminRouter.post('/login',adminController.adminLoginController);
 adminRouter.post('/refreshaccesstoken',adminController.adminRefreshAccessTokenController);
 
+//dashboard
+adminRouter.get('/dashboard',verifyAccessToken("admin"),adminController.adminDashboardController)
 
 //admin main category
 adminRouter.post('/createcategory', verifyAccessToken("admin"),fileUpload.uploadImage('categoryImages').single('mainCategoryImage'), adminController.createCategoryController);
@@ -43,6 +45,7 @@ adminRouter.get('/listpartnercompany', verifyAccessToken("admin"), adminControll
 // adminRouter.put('/updatepartnercompany/:companyId', verifyAccessToken("admin"), fileUpload.uploadImage('partnerCompany').fields([{name:'companyImage',maxCount:10}]),adminController.updatePartnerCompanyController)
 // adminRouter.delete('/removepartnercompany', verifyAccessToken("admin"),adminController.removePartnerCompanyController)
 
-adminRouter.get('/listcontactus', verifyAccessToken("admin"), adminController.listContactUsController)
+adminRouter.get('/listcontactus', verifyAccessToken("admin"), adminController.listContactUsController);
+
 
 module.exports = adminRouter;

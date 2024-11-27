@@ -19,14 +19,15 @@ const generateRefreshToken = async (data) =>{
 
 const verifyAccessToken= (role) => async(req, res, next) =>{
     // console.time("verifyAccessToken");
+
         const authHeader = req.headers['authorization'];
-     
     
         if(!authHeader?.startsWith('Bearer ')){
             return res.status(401).json({message: "Access denied, no token provided"});
         }
 
         const token = authHeader.split(' ')[1];
+        // console.log("token",authHeader.split(' ')[0], authHeader.split(' ')[1]);
         try {
             const decoded = jwt.verify(token, config.token.accessSecretKey);
          
@@ -40,7 +41,7 @@ const verifyAccessToken= (role) => async(req, res, next) =>{
             // console.timeEnd("verifyAccessToken");
             next();
           } catch (error) {
-            // console.log("error", error)
+            console.log("error", error)
             return res.status(401).json({ message: error.name === "TokenExpiredError" ? "Token expired" : "Invalid token" });
           }
 };

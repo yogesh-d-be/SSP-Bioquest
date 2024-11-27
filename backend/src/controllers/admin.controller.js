@@ -17,6 +17,13 @@ const adminRefreshAccessTokenController = catchAsync(async (req, res) => {
     res.status(200).json({ success:true, message:"New Access token created successfully", data:{accessToken}});
 });
 
+const adminDashboardController = catchAsync(async (req, res) => {
+    const dashboard = await adminService.dashboardService(req);
+    res.status(200).json({ success:true, message:"Dashboard data listed successfully", data:dashboard});
+});
+
+
+
 const createCategoryController = catchAsync(async (req, res) => {
     const createCategory = await adminService.createCategoryService(req);
     res.status(201).json({success:true, message:"Category created successfully", data:createCategory})
@@ -81,6 +88,8 @@ const listContactUsController = catchAsync(async (req, res) => {
 module.exports = {
     adminLoginController,
     adminRefreshAccessTokenController,
+
+    adminDashboardController,
 
     createCategoryController,
     listCategoryController,

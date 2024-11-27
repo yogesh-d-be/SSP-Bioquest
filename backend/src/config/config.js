@@ -51,7 +51,7 @@ module.exports = {
     token:{
         accessSecretKey: envVars.ACCESS_TOKEN_SECRET,
         refreshSecretKey: envVars.REFRESH_TOKEN_SECRET,
-        accessTokenExpiry: '15m',
+        accessTokenExpiry: '1m',
         refreshTokenExpiry: '7d'
     },
     adminCredentials:{

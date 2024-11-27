@@ -41,7 +41,7 @@ const login = async (req) =>{
 
 const refreshAccessToken = async (req) => {
     const refreshToken = req.cookies.refreshToken;
-
+console.log("rrr",req.body, req.cookies.refreshToken)
     if(!refreshToken){
         throw new ApiError(401,"No refresh token provided")
     }
@@ -55,10 +55,98 @@ const refreshAccessToken = async (req) => {
         }
     });
 });
-    const newAccessToken  = await authentication.generateAccessToken({_id:decoded.id});
+    const newAccessToken  = await authentication.generateAccessToken({_id:decoded.id,role:"admin"});
 
     return {accessToken:newAccessToken};
+};
+
+const dashboardService = async (req) => {
+    const promises = [
+        Category.countDocuments(),
+        Product.countDocuments(),
+        UserContactUs.countDocuments(),
+    ];
+    const now = new Date();
+    now.setHours(now.getHours()+5, now.getHours()+ 30, 0, 0);
+
+    const currentMonday = new Date(now);
+    currentMonday.setDate(now.getDate()- ((now.getDay()+6)%7));
+    currentMonday.setHours(0,0,0,0);
+
+    const weekBoundaries = [];
+    for(let i=0; i<5; i++){
+        const weekStart = new Date(currentMonday);
+        weekStart.setDate(currentMonday.getDate()- i*7);
+        weekBoundaries.push(weekStart);
+    }
+
+    promises.push(
+        UserContactUs.aggregate([
+        {
+            $match:{
+                createdAt:{$gte: weekBoundaries[4]}
+            }
+        },
+        {
+            $addFields:{
+                week:{
+                    $switch:{
+                        branches:[
+                            {
+                                case:{$gte:["$createdAt", weekBoundaries[0]]},
+                                then:"Week 1"
+                            },
+                            {
+                                case:{$gte:["$createdAt", weekBoundaries[1]]},
+                                then:"Week 2"
+                            },
+                            {
+                                case: { $gte: ["$createdAt", weekBoundaries[2]] },
+                                then: "Week 3",
+                              },
+                              {
+                                case: { $gte: ["$createdAt", weekBoundaries[3]] },
+                                then: "Week 4",
+                              },
+                              {
+                                case: { $gte: ["$createdAt", weekBoundaries[4]] },
+                                then: "Week 5",
+                              },
+                        ],
+                        default: "Older",
+                    }
+                }
+            }
+        },
+        {
+            $group: {
+              _id: "$week",
+              count: { $sum: 1 },
+            },
+          },
+          {
+            $sort: { _id: -1 }, // Sort weeks in ascending order
+          },
+    ])
+);
+
+const [mainCategoryCount, productCount, userContactUsCount, results] = await Promise.all(promises);
+
+    const formattedResults = [];
+    for (let i = 1; i <= 5; i++) {
+      const week = `Week ${i}`;
+      const data = results.find((r) => r._id === week);
+      formattedResults.push({
+        week,
+        start: weekBoundaries[i - 1].toISOString(),
+        end: i === 1 ? now.toISOString() : weekBoundaries[i - 2].toISOString(),
+        count: data ? data.count : 0,
+      });
+    }
+
+    return{mainCategoryCount, productCount, userContactUsCount, formattedResults};
 }
+
 
 const createCategoryService = async (req) => {
     const {mainCategoryImage} = req.file || {};
@@ -481,6 +569,8 @@ const listContactUsService = async (req) => {
 module.exports = {
     login,
     refreshAccessToken,
+
+    dashboardService,
 
     createCategoryService,
     listCategoryService,
