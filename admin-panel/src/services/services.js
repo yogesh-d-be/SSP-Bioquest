@@ -12,3 +12,8 @@ export const refreshAccessToken = async () => {
     return data;
 };
 
+export const adminDashboardData = async () => {
+    const data = await apiInstance.get('/admin/dashboard');
+    return data;
+}
+

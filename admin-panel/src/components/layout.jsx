@@ -7,8 +7,11 @@ const Layout = ({children}) => {
     console.log("Layout rendered",children);  
     return (
         <div className="flex">
+            <div className="max-w-64">
+
             <Sidebar/>
-            <div className="flex-1 p-6 bg-red-600 min-h-screen">
+            </div>
+            <div className="flex-1 p-6  min-h-screen">
                 {children}
             </div>
         </div>

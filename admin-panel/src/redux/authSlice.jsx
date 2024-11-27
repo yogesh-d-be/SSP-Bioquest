@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-    accessToken: localStorage.getItem('bioquest') || null,
+    accessToken:  null,
     refreshToken: null
 };
 
@@ -11,16 +11,16 @@ const authSlice = createSlice({
     initialState,
     reducers:{
         setTokens: (state, action) => {
-            state.accessToken = action.payload.accessToken;
-            state.refreshToken = action.payload.refreshToken;
+            state.accessToken = action.payload;
+            state.refreshToken = action.payload;
 
-            localStorage.setItem("bioquest", action.payload.accessToken);
+            // localStorage.setItem("bioquest", action.payload.accessToken);
         },
         clearTokens: (state) => {
             state.accessToken = null;
             state.refreshToken = null;
             // Remove accessToken from localStorage
-            localStorage.removeItem("bioquest");
+            // localStorage.removeItem("bioquest");
 
             // Remove refreshToken from cookies
             document.cookie = "refreshToken=; path=/; Max-Age=0; Secure; HttpOnly; SameSite=Strict";

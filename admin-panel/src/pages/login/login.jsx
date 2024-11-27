@@ -28,9 +28,9 @@ const Login = () => {
             
             const res = await adminLogin(values);
             if(res.data.success){
-             const {accessToken, refreshToken} = res.data.data;
+             const {accessToken} = res.data.data;
              form.resetFields();
-            dispatch(setTokens({ accessToken, refreshToken }));
+            dispatch(setTokens({ accessToken }));
             message.success("Login successful!");
             setTimeout(()=>{
                 navigate('/dashboard');
