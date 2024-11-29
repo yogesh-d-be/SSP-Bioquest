@@ -17,6 +17,17 @@ const adminRefreshAccessTokenController = catchAsync(async (req, res) => {
     res.status(200).json({ success:true, message:"New Access token created successfully", data:{accessToken}});
 });
 
+const adminLogoutController = catchAsync(async (req, res) => {
+     await adminService.logoutService(req);
+    res.clearCookie('refreshToken', {
+        path: '/',
+        secure: true,
+        httpOnly: true,
+        sameSite: 'Strict',
+      });
+    res.status(200).json({ success:true, message:"Logout successfully"});
+});
+
 const adminDashboardController = catchAsync(async (req, res) => {
     const dashboard = await adminService.dashboardService(req);
     res.status(200).json({ success:true, message:"Dashboard data listed successfully", data:dashboard});
@@ -88,6 +99,7 @@ const listContactUsController = catchAsync(async (req, res) => {
 module.exports = {
     adminLoginController,
     adminRefreshAccessTokenController,
+    adminLogoutController,
 
     adminDashboardController,
 

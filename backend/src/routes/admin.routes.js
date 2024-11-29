@@ -10,6 +10,7 @@ const getProductAndSetCode = require('../middleware/productCode');
 //authentication
 adminRouter.post('/login',adminController.adminLoginController);
 adminRouter.post('/refreshaccesstoken',adminController.adminRefreshAccessTokenController);
+adminRouter.post('/logout', adminController.adminLogoutController);
 
 //dashboard
 adminRouter.get('/dashboard',verifyAccessToken("admin"),adminController.adminDashboardController)

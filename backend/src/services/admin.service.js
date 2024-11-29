@@ -60,6 +60,17 @@ console.log("rrr",req.body, req.cookies.refreshToken)
     return {accessToken:newAccessToken};
 };
 
+const logoutService = async (req) => {
+    const refreshToken = req.cookies.refreshToken;
+
+    if(!refreshToken){
+        throw new ApiError(404, "Token not found");
+    };
+
+    return;
+}
+
+
 const dashboardService = async (req) => {
     const promises = [
         Category.countDocuments(),
@@ -569,6 +580,7 @@ const listContactUsService = async (req) => {
 module.exports = {
     login,
     refreshAccessToken,
+    logoutService,
 
     dashboardService,
 
