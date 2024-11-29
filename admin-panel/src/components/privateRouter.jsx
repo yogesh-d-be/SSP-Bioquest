@@ -10,9 +10,9 @@ const PrivateRoute = ({element}) => {
     const token = useSelector((state) => state.auth.accessToken);
     // console.log("uuutt",store.getState().auth.accessToken)
 
-console.log(token,"token")
+// console.log(token,"token")
     if(!token){
-        console.log("navigate")
+        // console.log("navigate")
         return <Navigate to = "/" replace />;
     };
 

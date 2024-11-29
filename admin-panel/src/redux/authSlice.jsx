@@ -22,8 +22,8 @@ const authSlice = createSlice({
             // Remove accessToken from localStorage
             // localStorage.removeItem("bioquest");
 
-            // Remove refreshToken from cookies
-            document.cookie = "refreshToken=; path=/; Max-Age=0; Secure; HttpOnly; SameSite=Strict";
+            // // Remove refreshToken from cookies
+            // document.cookie = "refreshToken=; path=/; Max-Age=0; Secure; HttpOnly; SameSite=Strict";
         }
     }
 });

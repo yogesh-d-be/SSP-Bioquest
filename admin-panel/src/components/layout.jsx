@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 
 
 const Layout = ({children}) => {
-    console.log("Layout rendered",children);  
+    // console.log("Layout rendered",children);  
     return (
         <div className="flex">
             <div className="max-w-64">

@@ -8,7 +8,7 @@ const Router = () => {
       const pageRoutes = PageRoutes.map(({ title, path, element, layout }) => {
        
         if (layout) {
-            console.log("ele",element)
+            // console.log("ele",element)
           return (
             <Route
               key={title}

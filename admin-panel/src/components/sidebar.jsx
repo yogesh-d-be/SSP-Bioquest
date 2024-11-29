@@ -2,13 +2,17 @@
 import React, { useState } from "react";
 import { FaHome, FaUser, FaCog, FaBars, FaTachometerAlt, FaListAlt, FaBuilding, FaBox, FaEnvelope, FaSignInAlt, FaClosedCaptioning, FaCross, FaChevronLeft } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import useSignOut from "../utility/signout";
+import { Button } from "antd";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const signOut = useSignOut();
 
 const toggleSidebar = () => {
   setIsOpen(!isOpen);
 }
+
 
   const menuItems = [
     { icon: <FaHome />, label: "Dashboard", link: "/dashboard" },
@@ -16,11 +20,11 @@ const toggleSidebar = () => {
     { icon: <FaBox />, label: "Products", link: "/product" },
     { icon: <FaBuilding />, label: "Partner Company", link: "/partnercompany" },
     { icon: <FaEnvelope />, label: "Contact Us", link: "/contactus" },
-    { icon: <FaSignInAlt />, label: "Sign Out", link: "#" },
+    { icon: <FaSignInAlt />, label: "Sign Out", action:signOut },
   ];
 
   return (
-   <div className={`h-screen bg-gradient-to-b from-gray-800 via-gray-900 to-black  relative overflow-hidden ${isOpen? "w-60":"w-[70px]"} transition-all  duration-500 ease-in-out shadow-lg`}>
+   <div className={`h-screen bg-gradient-to-b from-pink-800 via-pink-900 to-black  relative overflow-hidden ${isOpen? "w-60":"w-[70px]"} transition-all  duration-500 ease-in-out shadow-lg`}>
     <div className="flex items-center justify-between p-6">
     <button
           className="text-xl focus:outline-none text-white z-10"
@@ -36,10 +40,21 @@ const toggleSidebar = () => {
     </div>
     <nav className="mt-10">
     {menuItems.map((item, index) => (
-      <Link key={index} to={item.link} className="flex items-center rounded-md mx-2  gap-4 py-5 px-4 hover:bg-gray-700 hover:shadow-md transition-all duration-300">
+    <div key={index}>
+      {item.action ? (
+          <div onClick={item.action} className="flex items-center rounded-md mx-2  gap-4 py-5 px-4 cursor-pointer hover:bg-gray-700 hover:shadow-md transition-all duration-300 bg-transparent">
+          <div className={`text-xl text-white transition-transform duration-500 transform ${isOpen ? "scale-100": "scale-125"}`}>{item.icon}</div>
+          <span className={`text-md text-white font-semibold transition-all duration-1000 ${ isOpen ? "opacity-100" : "opacity-0 hidden" }`}>{item.label}</span>
+        </div>
+      ):(
+        <Link  to={item.link} className="flex items-center rounded-md mx-2  gap-4 py-5 px-4 hover:bg-gray-700 hover:shadow-md transition-all duration-300">
         <div className={`text-xl text-white transition-transform duration-500 transform ${isOpen ? "scale-100": "scale-125"}`}>{item.icon}</div>
         <span className={`text-md text-white font-semibold transition-all duration-1000 ${ isOpen ? "opacity-100" : "opacity-0 hidden" }`}>{item.label}</span>
       </Link>
+      )
+
+      }
+    </div>
     ))
 
     }

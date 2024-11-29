@@ -27,6 +27,7 @@ const Login = () => {
         try{
             
             const res = await adminLogin(values);
+            // console.log("res", values)
             if(res.data.success){
              const {accessToken} = res.data.data;
              form.resetFields();
@@ -38,7 +39,7 @@ const Login = () => {
             }
             // console.log("login",res.data);
         }catch(err){
-            // console.error("error of login",err)
+            console.error("error of login",err)
             message.error(err.response?.data?.message || "Login failed");
         }
     }

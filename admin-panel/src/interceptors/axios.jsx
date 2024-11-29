@@ -101,8 +101,9 @@ apiInstance.interceptors.request.use(
   (config) => {
    
     const {auth} = store.getState();
-    const authToken = auth.accessToken.accessToken; 
-    console.log("auth",authToken)
+    // console.log("auth",auth)
+    const authToken = auth.accessToken?.accessToken; 
+    // console.log("auth",authToken)
     if (authToken) {
       config.headers.Authorization = `Bearer ${authToken}`;
     }
@@ -125,7 +126,7 @@ const refreshAuthLogic = async (failedRequest) => {
     );
     const { accessToken } = response.data.data;
    store.dispatch(setTokens({accessToken}))
-console.log("accessing token",accessToken)
+// console.log("accessing token",accessToken)
     failedRequest.response.config.headers.Authorization = `Bearer ${accessToken}`;
     return Promise.resolve();
   } catch (error) {
