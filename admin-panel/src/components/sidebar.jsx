@@ -3,16 +3,20 @@ import React, { useState } from "react";
 import { FaHome, FaUser, FaCog, FaBars, FaTachometerAlt, FaListAlt, FaBuilding, FaBox, FaEnvelope, FaSignInAlt, FaClosedCaptioning, FaCross, FaChevronLeft } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import useSignOut from "../utility/signout";
-import { Button } from "antd";
+import { Button, Modal } from "antd";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const [showSignoutModal, setShowSignoutModal] = useState(false);
   const signOut = useSignOut();
 
 const toggleSidebar = () => {
   setIsOpen(!isOpen);
 }
 
+const handleSignoutModal = () => {
+  setShowSignoutModal(true)
+}
 
   const menuItems = [
     { icon: <FaHome />, label: "Dashboard", link: "/dashboard" },
@@ -20,7 +24,7 @@ const toggleSidebar = () => {
     { icon: <FaBox />, label: "Products", link: "/product" },
     { icon: <FaBuilding />, label: "Partner Company", link: "/partnercompany" },
     { icon: <FaEnvelope />, label: "Contact Us", link: "/contactus" },
-    { icon: <FaSignInAlt />, label: "Sign Out", action:signOut },
+    { icon: <FaSignInAlt />, label: "Sign Out", action:handleSignoutModal },
   ];
 
   return (
@@ -58,6 +62,14 @@ const toggleSidebar = () => {
     ))
 
     }
+    <Modal
+    open={showSignoutModal}
+    onCancel={()=>showSignoutModal(false)}
+    onOk={signOut}
+    okText="Confirm"
+    >
+      Are you sure to sign out?
+    </Modal>
     </nav>
    </div>
   );
