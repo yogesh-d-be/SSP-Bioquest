@@ -18,6 +18,7 @@ adminRouter.get('/dashboard',verifyAccessToken("admin"),adminController.adminDas
 //admin main category
 adminRouter.post('/createcategory', verifyAccessToken("admin"),fileUpload.uploadImage('categoryImages').single('mainCategoryImage'), adminController.createCategoryController);
 adminRouter.get('/listcategory', verifyAccessToken("admin"), adminController.listCategoryController);
+adminRouter.get('/listcategory/:categoryId', verifyAccessToken("admin"), adminController.listCategoryByIdController);
 adminRouter.put('/updatecategory/:categoryId', verifyAccessToken("admin"),fileUpload.uploadImage('categoryImages').single('mainCategoryImage'), adminController.updateCategoryController);
 adminRouter.delete('/removecategory/:categoryId', verifyAccessToken("admin"), adminController.removeCategoryController);
 

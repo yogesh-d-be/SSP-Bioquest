@@ -43,6 +43,10 @@ const listCategoryController = catchAsync(async (req, res) => {
     const listCategory = await adminService.listCategoryService(req);
     res.status(200).json({success:true, message:"Category listed successfully", data:listCategory})
 })
+const listCategoryByIdController = catchAsync(async (req, res) => {
+    const listCategoryById = await adminService.listCategoryByIdService(req);
+    res.status(200).json({success:true, message:"Category listed successfully", data:listCategoryById})
+})
 const updateCategoryController = catchAsync(async (req, res) => {
     const updateCategory = await adminService.updateCategoryService(req);
     res.status(200).json({success:true, message:"Category updated successfully", data:updateCategory})
@@ -105,6 +109,7 @@ module.exports = {
 
     createCategoryController,
     listCategoryController,
+    listCategoryByIdController,
     updateCategoryController,
     removeCategoryController,
 

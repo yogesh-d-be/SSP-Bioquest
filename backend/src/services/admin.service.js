@@ -162,7 +162,7 @@ const [mainCategoryCount, productCount, userContactUsCount, results] = await Pro
 const createCategoryService = async (req) => {
     const {mainCategoryImage} = req.file || {};
 
-    console.log("main",mainCategoryImage, req.body)
+    console.log("main",req.file, req.body)
 
     if(!req.file){
         throw new ApiError(400,"Category image is required");
@@ -184,6 +184,7 @@ const createCategoryService = async (req) => {
         if(categoryImage){
             await removeFileFromStroage(categoryImage,'categoryImages');
         }
+        console.log("error",error)
         throw new ApiError(500,'Error while saving category');
     }
 
@@ -196,7 +197,20 @@ const listCategoryService = async (req) => {
     limit = parseInt(limit, 10) || 10;
 
     const skip = (page-1)*limit;
-    const categoryList = await Category.find({}).skip(skip).limit(limit).lean();
+    const categoryList = await Category.find({})
+    .skip(skip).limit(limit).lean();
+    if(!categoryList){
+        throw new ApiError(404,"Category not found")
+    }
+
+    return categoryList;
+};
+
+const listCategoryByIdService = async (req) => {
+    const {categoryId} = req.params;
+    console.log("cat",categoryId)
+    const categoryList = await Category.findById(categoryId).lean();
+    console.log("cate",categoryList)
     if(!categoryList){
         throw new ApiError(404,"Category not found")
     }
@@ -207,6 +221,7 @@ const listCategoryService = async (req) => {
 
 const updateCategoryService = async (req) => {
     const {categoryId} = req.params;
+    console.log("req",req.params, req.body)
     // const {mainCategoryImage} = req.file || {};
     const updateData = {...req.body};
 
@@ -586,6 +601,7 @@ module.exports = {
 
     createCategoryService,
     listCategoryService,
+    listCategoryByIdService,
     updateCategoryService,
     removeCategoryService,
 
