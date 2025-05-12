@@ -18,7 +18,11 @@ const login = async (req) =>{
 
     const { adminEmail, adminPassword } = config.adminCredentials;
 
+    console.log("email", email, password);
+    console.log("ade",adminEmail, adminPassword)
+
     let admin = await AdminLogin.findOne({});
+    console.log("ad", admin)
     if(!admin){
         const hashedPassword = await bcrypt.hash(adminPassword,10);
         admin = await AdminLogin.create({email:adminEmail, password:hashedPassword});
@@ -365,7 +369,7 @@ const removeCategoryService = async (req) => {
 // };
 
 const createProductService = async (req) => {
-
+// console.log("req product", req.body, req.files)
 
     const { productImage, brochure } = req.files || {};
       if (!productImage?.length || !brochure?.[0]) {
@@ -390,18 +394,19 @@ const createProductService = async (req) => {
         };
       
      
-     
+    //  console.log("product data", productData)
         savedProduct = await new Product(productData).save();
+        // console.log("save product", savedProduct)
        }
        catch(error){
         if(productImagePath.length){
             productImagePath.forEach((filePath)=>removeFileFromStroage(filePath,'categoryFiles'));
         }
         if(brochurePath){
-            removeFileFromStroage(brochure,'categoryFiles')
+            removeFileFromStroage(brochurePath,'categoryFiles')
         }
-         throw new ApiError(500, "Error saving product and cleaning up files");
-       }
+        throw new ApiError(500, `Error saving product and cleaning up files: ${error.message}`);
+           }
        
         return savedProduct;
        
@@ -412,7 +417,12 @@ const createProductService = async (req) => {
     page = parseInt(page, 10);
     limit = parseInt(limit, 10);
     const skip = (page - 1)*limit;
-    const productList = await Product.find({}).skip(skip).limit(limit).lean();
+    const productList = await Product.find({})
+    .populate({
+        path:'mainCategory',
+        select:'mainCategoryName'
+    })
+    .skip(skip).limit(limit).lean();
     if(!productList){
         throw new ApiError(404,"Product not found")
     }

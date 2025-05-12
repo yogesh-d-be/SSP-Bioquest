@@ -38,7 +38,7 @@ const storageCategoryFiles = multer.diskStorage({
             const productCode = req.productCode || req.body.productCode;
             const extension = path.extname(file.originalname);
             if (!req.productCode) {
-                req.productCode = await generateCode('productCode','SSPBQ');
+                req.productCode = await generateCode('productCode','KKIT');
                 return cb(null,`${req.productCode}-${file.fieldname}-${Date.now()}${extension}`)
             }
             cb(null,`${productCode}-${file.fieldname}-${Date.now()}${extension}`)
@@ -75,13 +75,13 @@ const storageImage = (folderPath) => multer.diskStorage({
 const uploadImage = (folderPath) => multer({
     storage:storageImage(folderPath),
     fileFilter:fileFilter,
-    limits: { fileSize: 500 * 1024 }
+    limits: { fileSize: 5000 * 1024 }
 });
 
 const uploads = multer({
     storage:storageCategoryFiles,
     fileFilter:fileFilter,
-    limits: { fileSize: 200 * 1024 }
+    limits: { fileSize: 2000 * 1024 }
 });
 
 
