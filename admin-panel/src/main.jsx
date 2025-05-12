@@ -6,13 +6,16 @@ import { BrowserRouter } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import store, { persistor } from './redux/store.js'
 import { PersistGate } from 'redux-persist/integration/react'
+import { AuthProvider } from './contexts/authContext.jsx'
 // import { AuthProvider } from './contexts/authContext.jsx'
 
 
 createRoot(document.getElementById('root')).render(
   <Provider store={store}>
+    <AuthProvider>
      {/* <PersistGate loading={null} persistor={persistor}> */}
     <App />
     {/* </PersistGate> */}
+    </AuthProvider>
   </Provider>,
 )

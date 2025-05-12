@@ -46,3 +46,25 @@ export const removeCategory = async (categoryId) => {
     return data;
 }
 
+
+//Product
+
+
+export const createProduct = async (product) => {
+    console.log("product",product)
+    const data = await apiInstance.post('/admin/createproduct', product);
+    return data;
+}
+export const listProduct = async () => {
+    const data = await apiInstance.get('/admin/listproduct');
+    return data;
+}
+
+export const updateProduct= async (productId, product) => {
+    const data = await apiInstance.put(`/admin/updateproduct/${productId}`, product);
+    return data;
+}
+export const removeProduct = async (productId) => {
+    const data = await apiInstance.delete(`/admin/removeproduct/${productId}`);
+    return data;
+}
